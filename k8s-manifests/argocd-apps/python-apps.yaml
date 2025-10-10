@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: python-apps
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - app: python-app1
+            namespace: python-app1
+          - app: python-app2
+            namespace: python-app2
+  template:
+    metadata:
+      name: '{{app}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/jesse677/argocd.git  # UPDATE THIS to your repo URL
+        targetRevision: main
+        path: 'k8s-manifests/apps/{{app}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-app2
+  namespace: python-app2
+  labels:
+    app: python-app2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: python-app2
+  template:
+    metadata:
+      labels:
+        app: python-app2
+    spec:
+      containers:
+      - name: app
+        image: python:3.11-slim  # REPLACE with your actual image
+        command: ["python", "-m", "http.server", "8000"]
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: LOG_LEVEL
+          value: "info"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
