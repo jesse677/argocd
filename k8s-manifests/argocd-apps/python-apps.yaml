@@ -7,10 +7,8 @@ spec:
   generators:
     - list:
         elements:
-          - app: python-app1
-            namespace: python-app1
-          - app: python-app2
-            namespace: python-app2
+          - app: tina-paper
+            namespace: tina-paper
   template:
     metadata:
       name: '{{app}}'

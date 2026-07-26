@@ -20,15 +20,9 @@ k8s-manifests/
 │       └── filebeat.yaml
 │
 └── apps/                # Application workloads
-    ├── python-app1/
-    │   ├── namespace.yaml
-    │   ├── deployment.yaml
-    │   ├── service.yaml
-    │   └── configmap.yaml
-    └── python-app2/
-        ├── namespace.yaml
-        ├── deployment.yaml
-        └── service.yaml
+    └── tina-paper/          # Crypto trading bot (background worker, no Service)
+        ├── namespace.yml
+        └── deployment.yml
 ```
 
 ## Prerequisites
@@ -69,8 +63,7 @@ kubectl get applications -n argocd
 
 # Check pods
 kubectl get pods -n elk
-kubectl get pods -n python-app1
-kubectl get pods -n python-app2
+kubectl get pods -n tina-paper
 ```
 
 ## Accessing Services
@@ -97,14 +90,12 @@ kubectl port-forward svc/kibana -n elk 5601:5601
 # Access at http://localhost:5601
 ```
 
-### Python Apps
+### Tina Paper
+
+Background worker, no Service — tail logs instead:
 
 ```bash
-# App 1
-kubectl port-forward svc/python-app1 -n python-app1 8001:80
-
-# App 2
-kubectl port-forward svc/python-app2 -n python-app2 8002:80
+kubectl logs -n tina-paper deploy/tina-paper -f
 ```
 
 ## How It Works
@@ -148,18 +139,18 @@ kubectl port-forward svc/python-app2 -n python-app2 8002:80
 
 Logs flow: Container stdout/stderr → Filebeat → Logstash → Elasticsearch → Kibana
 
-## Python Apps Details
+## Tina Paper Details
 
-Current apps use `python:3.11-slim` as placeholder. Update the `image` field in each deployment.yaml with your actual container images.
+Crypto trading bot (Alpaca paper trading), built and pushed to `docker.io/jesse677/tina-paper` by its own repo's GitHub Actions workflow on every push to main.
 
-### CI/CD Integration
-
-For automatic image updates:
-
-1. Build your Python app container in CI (GitHub Actions, etc.)
-2. Push to container registry with tag (e.g., `myapp:v1.2.3`)
-3. Update the image tag in Git
-4. ArgoCD deploys the new version
+- Runs as a single replica with `strategy: Recreate` — never run more than one instance, it would double-trade.
+- Credentials come from a `tina-paper-secrets` Secret (`ALPACA_API_KEY`, `ALPACA_API_SECRET`) in the `tina-paper` namespace. This Secret is **not** stored in Git — create it directly on the cluster:
+  ```bash
+  kubectl create secret generic tina-paper-secrets -n tina-paper \
+    --from-literal=ALPACA_API_KEY=... \
+    --from-literal=ALPACA_API_SECRET=...
+  ```
+- To deploy a new image build, bump the tag in `apps/tina-paper/deployment.yml` (currently tracks `:latest`) and push.
 
 ## Troubleshooting
 
