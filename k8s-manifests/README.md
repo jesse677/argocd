@@ -19,10 +19,7 @@ k8s-manifests/
 │       ├── logstash.yaml
 │       └── filebeat.yaml
 │
-└── apps/                # Application workloads
-    └── tina-paper/          # Crypto trading bot (background worker, no Service)
-        ├── namespace.yml
-        └── deployment.yml
+└── apps/                # Application workloads (empty, populated via python-apps ApplicationSet)
 ```
 
 ## Prerequisites
@@ -63,7 +60,6 @@ kubectl get applications -n argocd
 
 # Check pods
 kubectl get pods -n elk
-kubectl get pods -n tina-paper
 ```
 
 ## Accessing Services
@@ -88,14 +84,6 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 kubectl port-forward svc/kibana -n elk 5601:5601
 
 # Access at http://localhost:5601
-```
-
-### Tina Paper
-
-Background worker, no Service — tail logs instead:
-
-```bash
-kubectl logs -n tina-paper deploy/tina-paper -f
 ```
 
 ## How It Works
@@ -138,19 +126,6 @@ kubectl logs -n tina-paper deploy/tina-paper -f
 - **Filebeat**: DaemonSet collecting container logs
 
 Logs flow: Container stdout/stderr → Filebeat → Logstash → Elasticsearch → Kibana
-
-## Tina Paper Details
-
-Crypto trading bot (Alpaca paper trading), built and pushed to `docker.io/jesse677/tina-paper` by its own repo's GitHub Actions workflow on every push to main.
-
-- Runs as a single replica with `strategy: Recreate` — never run more than one instance, it would double-trade.
-- Credentials come from a `tina-paper-secrets` Secret (`ALPACA_API_KEY`, `ALPACA_API_SECRET`) in the `tina-paper` namespace. This Secret is **not** stored in Git — create it directly on the cluster:
-  ```bash
-  kubectl create secret generic tina-paper-secrets -n tina-paper \
-    --from-literal=ALPACA_API_KEY=... \
-    --from-literal=ALPACA_API_SECRET=...
-  ```
-- To deploy a new image build, bump the tag in `apps/tina-paper/deployment.yml` (currently tracks `:latest`) and push.
 
 ## Troubleshooting
 
