@@ -18,6 +18,7 @@ k8s-manifests/
 │       ├── kibana.yaml
 │       ├── ingress.yaml
 │       ├── ilm-setup.yaml
+│       ├── security-setup.yaml
 │       ├── logstash.yaml
 │       └── filebeat.yaml
 │
@@ -134,6 +135,7 @@ Logs flow: Container stdout/stderr → Filebeat → Logstash → Elasticsearch �
 
 - **Elasticsearch** pods are spread one-per-node via required pod anti-affinity (3 nodes, 3 replicas).
 - **Index retention**: an ArgoCD PostSync Job (`ilm-setup.yaml`) applies an ILM policy (`logstash-policy`) that deletes `logstash-*` indices after 14 days. Adjust `min_age` in `ilm-setup.yaml` to change retention.
+- **Security**: `xpack.security.enabled: true` — Elasticsearch transport layer uses TLS (self-signed CA, `elk-elasticsearch-certs` Secret), and Elasticsearch/Kibana/Logstash all authenticate (`elastic`, `kibana_system`, `logstash_internal` users). Credentials live in the `elk-credentials` Secret, created by the `elk-security` Terraform module in the `terraform-proxmox` repo (`terragrunt/kubernetes/manifest/elk-security/`) — **not** in this repo. That module must be applied (`terragrunt apply`) before this stack is synced, or pods will fail with `CreateContainerConfigError`. An ArgoCD PostSync Job (`security-setup.yaml`) sets the `kibana_system` password and creates the `logstash_writer` role/`logstash_internal` user via the Elasticsearch security API. Kibana now requires login — log in as `elastic` (password in the `elk-security` module's gitignored `.env`).
 
 ## Troubleshooting
 

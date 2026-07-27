@@ -47,7 +47,22 @@ spec:
         - name: cluster.initial_master_nodes
           value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
         - name: xpack.security.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.enabled
+          value: "true"
+        - name: xpack.security.transport.ssl.verification_mode
+          value: "certificate"
+        - name: xpack.security.transport.ssl.keystore.path
+          value: "certs/elastic-certificates.p12"
+        - name: xpack.security.transport.ssl.truststore.path
+          value: "certs/elastic-certificates.p12"
+        - name: xpack.security.http.ssl.enabled
           value: "false"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elk-credentials
+              key: elastic-password
         - name: ES_JAVA_OPTS
           value: "-Xms512m -Xmx512m"
         resources:
@@ -58,9 +73,11 @@ spec:
             cpu: 1000m
             memory: 2Gi
         readinessProbe:
-          httpGet:
-            path: /_cluster/health?local=true
-            port: 9200
+          exec:
+            command:
+            - bash
+            - -c
+            - curl -s -u "elastic:${ELASTIC_PASSWORD}" -o /dev/null -w '%{http_code}' http://localhost:9200/_cluster/health?local=true | grep -q 200
           initialDelaySeconds: 20
           periodSeconds: 10
           timeoutSeconds: 5
@@ -75,6 +92,13 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /usr/share/elasticsearch/data
+        - name: certs
+          mountPath: /usr/share/elasticsearch/config/certs
+          readOnly: true
+      volumes:
+      - name: certs
+        secret:
+          secretName: elk-elasticsearch-certs
   volumeClaimTemplates:
   - metadata:
       name: data

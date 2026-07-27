@@ -32,6 +32,8 @@ data:
       elasticsearch {
         hosts => ["http://elasticsearch-http:9200"]
         index => "logstash-%{+YYYY.MM.dd}"
+        user => "${LOGSTASH_INTERNAL_USER}"
+        password => "${LOGSTASH_INTERNAL_PASSWORD}"
       }
       stdout { codec => rubydebug }
     }
@@ -60,6 +62,13 @@ spec:
         env:
         - name: LS_JAVA_OPTS
           value: "-Xmx256m -Xms256m"
+        - name: LOGSTASH_INTERNAL_USER
+          value: "logstash_internal"
+        - name: LOGSTASH_INTERNAL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elk-credentials
+              key: logstash-internal-password
         resources:
           requests:
             cpu: 100m
