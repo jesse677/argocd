@@ -16,6 +16,7 @@ k8s-manifests/
 │       ├── namespace.yaml
 │       ├── elasticsearch.yaml
 │       ├── kibana.yaml
+│       ├── ingress.yaml
 │       ├── logstash.yaml
 │       └── filebeat.yaml
 │
@@ -80,7 +81,10 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 ### Kibana UI
 
+Exposed via Ingress (Traefik) at `http://kibana.taylor.net` (DNS record managed in `terraform-proxmox`'s `terragrunt/dns/records/records.hcl`).
+
 ```bash
+# Or port-forward directly:
 kubectl port-forward svc/kibana -n elk 5601:5601
 
 # Access at http://localhost:5601
