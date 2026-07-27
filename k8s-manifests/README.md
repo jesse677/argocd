@@ -17,6 +17,7 @@ k8s-manifests/
 │       ├── elasticsearch.yaml
 │       ├── kibana.yaml
 │       ├── ingress.yaml
+│       ├── ilm-setup.yaml
 │       ├── logstash.yaml
 │       └── filebeat.yaml
 │
@@ -130,6 +131,9 @@ kubectl port-forward svc/kibana -n elk 5601:5601
 - **Filebeat**: DaemonSet collecting container logs
 
 Logs flow: Container stdout/stderr → Filebeat → Logstash → Elasticsearch → Kibana
+
+- **Elasticsearch** pods are spread one-per-node via required pod anti-affinity (3 nodes, 3 replicas).
+- **Index retention**: an ArgoCD PostSync Job (`ilm-setup.yaml`) applies an ILM policy (`logstash-policy`) that deletes `logstash-*` indices after 14 days. Adjust `min_age` in `ilm-setup.yaml` to change retention.
 
 ## Troubleshooting
 

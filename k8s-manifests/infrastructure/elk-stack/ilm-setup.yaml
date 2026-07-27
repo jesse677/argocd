@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-ilm-setup
+  namespace: elk
+data:
+  setup.sh: |
+    #!/bin/sh
+    set -eu
+
+    ES_URL="http://elasticsearch-http:9200"
+
+    echo "Waiting for Elasticsearch..."
+    until curl -s -o /dev/null "${ES_URL}/_cluster/health"; do
+      sleep 5
+    done
+
+    echo "Applying ILM policy..."
+    curl -s -X PUT "${ES_URL}/_ilm/policy/logstash-policy" \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "policy": {
+          "phases": {
+            "hot": {
+              "min_age": "0ms",
+              "actions": {}
+            },
+            "delete": {
+              "min_age": "14d",
+              "actions": {
+                "delete": {}
+              }
+            }
+          }
+        }
+      }'
+
+    echo "Applying index template..."
+    curl -s -X PUT "${ES_URL}/_index_template/logstash-template" \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "index_patterns": ["logstash-*"],
+        "template": {
+          "settings": {
+            "index.lifecycle.name": "logstash-policy"
+          }
+        }
+      }'
+
+    echo "Applying policy to any pre-existing logstash-* indices..."
+    curl -s -X PUT "${ES_URL}/logstash-*/_settings" \
+      -H 'Content-Type: application/json' \
+      -d '{ "index.lifecycle.name": "logstash-policy" }' || true
+
+    echo "Done."
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elasticsearch-ilm-setup
+  namespace: elk
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: ilm-setup
+        image: curlimages/curl:8.10.1
+        command: ["/bin/sh", "/scripts/setup.sh"]
+        volumeMounts:
+        - name: script
+          mountPath: /scripts
+      volumes:
+      - name: script
+        configMap:
+          name: elasticsearch-ilm-setup
+          defaultMode: 0755
