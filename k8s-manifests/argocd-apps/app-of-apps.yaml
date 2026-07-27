@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/jesse677/argocd.git  # UPDATE THIS to your repo URL
+    repoURL: https://github.com/jesse677/argocd.git
     targetRevision: main
     path: k8s-manifests/argocd-apps
   destination:
