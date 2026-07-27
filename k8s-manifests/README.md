@@ -29,7 +29,7 @@ k8s-manifests/
 
 1. K3s cluster running (3 nodes)
 2. ArgoCD installed via Terragrunt
-3. Rook-Ceph storage available (storageClassName: `rook-ceph-block`)
+3. `local-path` StorageClass available (k3s default, node-local storage)
 4. Git repository pushed to GitHub/GitLab
 
 ## Initial Setup
@@ -132,7 +132,7 @@ kubectl logs -n tina-paper deploy/tina-paper -f
 
 ## ELK Stack Details
 
-- **Elasticsearch**: 3 replicas, 30Gi storage each (Rook-Ceph)
+- **Elasticsearch**: 3 replicas, 30Gi storage each (local-path)
 - **Kibana**: Single replica, visualization UI
 - **Logstash**: Processes logs from Filebeat
 - **Filebeat**: DaemonSet collecting container logs
@@ -166,7 +166,7 @@ kubectl patch application <app-name> -n argocd --type merge -p '{"operation":{"i
 
 ### Elasticsearch pods pending
 
-Check if Rook-Ceph storage is available:
+Check if the storage class exists and the PVC bound:
 
 ```bash
 kubectl get storageclass
