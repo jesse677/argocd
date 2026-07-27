@@ -67,6 +67,21 @@ spec:
           limits:
             cpu: 1000m
             memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
+        livenessProbe:
+          tcpSocket:
+            port: 9600
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 5
         volumeMounts:
         - name: config
           mountPath: /usr/share/logstash/config/logstash.yml
