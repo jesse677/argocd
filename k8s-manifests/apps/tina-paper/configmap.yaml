@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tina-paper-config
+  namespace: tina-paper
+data:
+  # Simulated trading, paper mode - the bot only ever fills orders against a
+  # local ledger (src/simulated_broker.py), never places real orders. Keep
+  # this true; it's the visible, in-git control on the autonomous config
+  # trainer (src/trainer.py), which rewrites TradingConfig with no human
+  # approval step.
+  SIMULATE_TRADING: "true"
+  PAPER_TRADING: "true"
+  SIM_STARTING_CASH: "1000"
+  SIM_FEE_BPS: "25"
+  ENABLE_LIVE_STREAM: "true"
+  TICK_RETENTION_HOURS: "24"
+  CHECK_INTERVAL_SECONDS: "60"
+  LOG_LEVEL: "INFO"
+  # Paths point at the tina-paper-data PVC mount so research history and the
+  # trainer's tuned config survive pod restarts.
+  RESEARCH_DB_PATH: "/app/data/research.db"
+  TICK_DB_PATH: "/app/data/ticks.db"
+  ACTIVE_CONFIG_PATH: "/app/data/active_config.json"

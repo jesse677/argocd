@@ -7,8 +7,8 @@ spec:
   generators:
     - list:
         elements:
-          #- app: tina-paper
-          #  namespace: tina-paper
+          - app: tina-paper
+            namespace: tina-paper
           - app: civic-radar
             namespace: civic-radar
   template:

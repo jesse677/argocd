@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tina-paper
+  namespace: tina-paper
+spec:
+  replicas: 1
+  strategy:
+    # local-path PVC is single-node/RWO - RollingUpdate would deadlock trying
+    # to schedule a second pod against a volume the first pod still holds.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tina-paper
+  template:
+    metadata:
+      labels:
+        app: tina-paper
+    spec:
+      containers:
+      - name: tina-paper
+        image: ghcr.io/jesse677/tina-paper:latest
+        # No CI/tag-bump pipeline yet - imagePullPolicy: Always so a
+        # `kubectl rollout restart` after a new `docker push` actually
+        # picks up the new :latest image.
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: tina-paper-config
+        env:
+        - name: ALPACA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tina-paper-secrets
+              key: ALPACA_API_KEY
+        - name: ALPACA_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: tina-paper-secrets
+              key: ALPACA_API_SECRET
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        resources:
+          requests:
+            cpu: 150m
+            memory: 384Mi
+          limits:
+            cpu: 750m
+            memory: 768Mi
+        livenessProbe:
+          exec:
+            command: ["pgrep", "-f", "main.py"]
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: tina-paper-data
