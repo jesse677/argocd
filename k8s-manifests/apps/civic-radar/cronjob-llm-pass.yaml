@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: civic-radar-llm-pass
+  namespace: civic-radar
+spec:
+  schedule: "0 7 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      # This calls out to Ollama on the PC over the LAN (CIVIC_RADAR_LLM_URL) -
+      # generous deadline since that machine's availability/load isn't
+      # guaranteed the way an in-cluster service's would be.
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: llm-pass
+            image: ghcr.io/jesse677/civic-radar:latest
+            command: ["python", "run_llm_pass.py", "--all"]
+            envFrom:
+            - configMapRef:
+                name: civic-radar-config
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: civic-radar-secrets
+                  key: pg-password
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi

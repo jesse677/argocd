@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: civic-radar
+  namespace: civic-radar
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: civic-radar.taylor.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: civic-radar
+            port:
+              number: 8000

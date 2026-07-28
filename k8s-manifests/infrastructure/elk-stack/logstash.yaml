@@ -35,7 +35,6 @@ data:
         user => "${LOGSTASH_INTERNAL_USER}"
         password => "${LOGSTASH_INTERNAL_PASSWORD}"
       }
-      stdout { codec => rubydebug }
     }
 ---
 apiVersion: apps/v1

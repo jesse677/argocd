@@ -15,6 +15,10 @@ data:
             matchers:
             - logs_path:
                 logs_path: "/var/log/containers/"
+        - drop_event:
+            when:
+              equals:
+                kubernetes.namespace: "elk"
 
     output.logstash:
       hosts: ["logstash:5044"]

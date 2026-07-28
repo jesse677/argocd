@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: civic-radar-config
+  namespace: civic-radar
+data:
+  # civic-radar-postgres-postgresql is the bitnami chart's default service
+  # name for helm release "civic-radar-postgres" - verify with
+  # `kubectl get svc -n civic-radar` after the Helm release is applied,
+  # chart naming helpers can be surprising.
+  PGHOST: "civic-radar-postgres-postgresql"
+  PGPORT: "5432"
+  PGDATABASE: "civic_radar"
+  PGUSER: "civic_radar"
+  # This PC, not a cluster service - see terragrunt/dns/records/records.hcl.
+  CIVIC_RADAR_LLM_URL: "http://ollama-pc.taylor.net:11434/v1/chat/completions"
+  CIVIC_RADAR_LLM_MODEL: "qwen2.5:14b-instruct"

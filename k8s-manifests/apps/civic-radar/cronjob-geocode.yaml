@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: civic-radar-geocode
+  namespace: civic-radar
+spec:
+  schedule: "30 6 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: geocode
+            image: ghcr.io/jesse677/civic-radar:latest
+            command: ["python", "run_geocode.py"]
+            envFrom:
+            - configMapRef:
+                name: civic-radar-config
+            env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: civic-radar-secrets
+                  key: pg-password
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 512Mi

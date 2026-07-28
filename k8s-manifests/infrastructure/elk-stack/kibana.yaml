@@ -37,6 +37,11 @@ spec:
             secretKeyRef:
               name: elk-credentials
               key: kibana-encryption-key
+        - name: XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: elk-credentials
+              key: kibana-encryption-key
         resources:
           requests:
             cpu: 100m
