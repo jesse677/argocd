@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tina-paper
+  namespace: tina-paper
+  labels:
+    app: tina-paper
+    # Required for the kube-prometheus-stack Prometheus instance to pick this
+    # up - its serviceMonitorSelector matches on release: kube-prometheus-stack.
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+    - tina-paper
+  selector:
+    matchLabels:
+      app: tina-paper
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics

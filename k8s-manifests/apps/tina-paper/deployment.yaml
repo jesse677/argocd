@@ -38,6 +38,9 @@ spec:
             secretKeyRef:
               name: tina-paper-secrets
               key: ALPACA_API_SECRET
+        ports:
+        - name: metrics
+          containerPort: 9200
         volumeMounts:
         - name: data
           mountPath: /app/data
