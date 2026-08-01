@@ -20,10 +20,7 @@ spec:
       containers:
       - name: tina-paper
         image: ghcr.io/jesse677/tina-paper:latest
-        # No CI/tag-bump pipeline yet - imagePullPolicy: Always so a
-        # `kubectl rollout restart` after a new `docker push` actually
-        # picks up the new :latest image.
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         envFrom:
         - configMapRef:
             name: tina-paper-config
